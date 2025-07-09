@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История чатов | Админ-панель</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1><i class="fas fa-comments"></i> История чат-бота</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="main-content">
+            <h2><i class="fas fa-users"></i> Список пользователей</h2>
+
+            {% if not users %}
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>Нет доступных пользователей</h3>
+                <p>В базе Redis не найдено пользователей с историей переписки</p>
+            </div>
+            {% else %}
+            <div class="users-list">
+                {% for user in users %}
+                <div class="user-card">
+                    <a href="/history?user_id={{ user }}" class="user-card-main">
+                        <div class="user-avatar">{{ user[:2] }}</div>
+                        <div class="user-info">
+                            <div class="user-name">Пользователь #{{ user }}</div>
+                            <div class="user-id">ID: {{ user }}</div>
+                        </div>
+                        <div class="user-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </a>
+                    <div class="user-actions">
+                        <a href="/delete_dialog?user_id={{ user }}" class="btn-delete" onclick="return confirm('Вы уверены, что хотите удалить этот диалог?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Обработчик для кнопки удаления
+            document.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    if (!confirm('Вы уверены, что хотите удалить этот диалог?')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
