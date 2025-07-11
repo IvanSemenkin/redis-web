@@ -2,6 +2,9 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redis Console | Админ-панель</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -109,19 +112,37 @@
 
         // Отображение строкового ключа
         function renderStringKey(key, value) {
-            keyContent.innerHTML = `
-                <div class="key-header">
-                    <h3>${key} <span class="key-type">(string)</span></h3>
-                </div>
-                <textarea class="redis-value-editor" id="key-value">${value}</textarea>
-                <div class="key-actions">
-                    <button id="save-key"><i class="fas fa-save"></i> Сохранить</button>
-                    <button id="delete-key" class="danger"><i class="fas fa-trash"></i> Удалить</button>
-                </div>
-            `;
-            
-            setupKeyHandlers(key, 'string');
-        }
+    try {
+        // Пытаемся красиво отформатировать JSON
+        const parsedValue = JSON.parse(value);
+        const formattedValue = JSON.stringify(parsedValue, null, 2);
+        
+        keyContent.innerHTML = `
+            <div class="key-header">
+                <h3>${key} <span class="key-type">(JSON)</span></h3>
+            </div>
+            <pre class="json-viewer">${hljs.highlight('json', formattedValue).value}</pre>
+            <div class="key-actions">
+                <button id="save-key" class="btn-primary"><i class="fas fa-save"></i> Сохранить</button>
+                <button id="delete-key" class="btn-danger"><i class="fas fa-trash"></i> Удалить</button>
+            </div>
+        `;
+    } catch (e) {
+        // Если не JSON, показываем как обычный текст
+        keyContent.innerHTML = `
+            <div class="key-header">
+                <h3>${key} <span class="key-type">(string)</span></h3>
+            </div>
+            <textarea class="redis-value-editor">${value}</textarea>
+            <div class="key-actions">
+                <button id="save-key" class="btn-primary"><i class="fas fa-save"></i> Сохранить</button>
+                <button id="delete-key" class="btn-danger"><i class="fas fa-trash"></i> Удалить</button>
+            </div>
+        `;
+    }
+    
+    setupKeyHandlers(key, 'string');
+}
 
         // Отображение хэш-ключа
         function renderHashKey(key, value) {

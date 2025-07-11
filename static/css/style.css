@@ -759,3 +759,24 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+/* Добавьте в CSS */
+.json-viewer {
+    width: 100%;
+    padding: 1rem;
+    background: #f8f8f8;
+    border: 1px solid #e1e1e1;
+    border-radius: 6px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+/* Подсветка синтаксиса */
+.hljs-attr { color: #e45649; }
+.hljs-string { color: #50a14f; }
+.hljs-number { color: #986801; }
+.hljs-literal { color: #0184bc; }
