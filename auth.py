@@ -3,7 +3,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = 'ваш_секретный_ключ'  # Замените на реальный секретный ключ
+app.secret_key = '9eaff9cb5e8474870deb5ebc6d8cac0fa345aac8537cce716a884719252a75ee'  # Замените на реальный секретный ключ
 
 login_manager = LoginManager()
 login_manager.init_app(app)

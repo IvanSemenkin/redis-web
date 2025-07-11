@@ -19,9 +19,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__, static_folder='static')
 
-login_manager = LoginManager()
-login_manager.init_app(app)  # Связываем с приложением
-login_manager.login_view = 'login'
 
 # Конфигурация Redis
 REDIS_HOST = "localhost"
