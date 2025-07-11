@@ -1,0 +1,86 @@
+/* Redis Console Styles */
+.redis-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.redis-toolbar input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.key-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    word-break: break-all;
+}
+
+.key-item:hover {
+    background-color: #f5f5f5;
+}
+
+.key-header {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.key-type {
+    color: #666;
+    font-size: 0.8em;
+}
+
+.redis-value-editor {
+    width: 100%;
+    min-height: 300px;
+    padding: 10px;
+    font-family: monospace;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.key-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.key-actions button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.key-actions button.danger {
+    background-color: #ff6b6b;
+    color: white;
+}
+
+.hash-field {
+    margin-bottom: 15px;
+}
+
+.hash-field-name {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.hash-field-value {
+    width: 100%;
+    min-height: 80px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: monospace;
+}

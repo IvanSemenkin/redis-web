@@ -521,3 +521,10 @@ a {
         justify-content: center;
     }
 }
+
+.btn-redis-console {
+    color: white;
+    text-decoration: none;
+    font-size: 0.8em;
+    margin-left: 20px;
+}
