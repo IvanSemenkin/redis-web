@@ -242,6 +242,13 @@
         // Инициализация
         refreshBtn.addEventListener('click', loadKeys);
         loadKeys();
+        document.querySelectorAll('.json-viewer').forEach(viewer => {
+    viewer.addEventListener('click', (e) => {
+        if (e.target === viewer) {
+            viewer.classList.toggle('collapsed');
+        }
+    });
+});
     </script>
 </body>
 </html>
