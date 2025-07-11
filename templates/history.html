@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>История чата | Админ-панель</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-
 <body>
     <div class="header">
         <div class="container">
@@ -25,48 +23,41 @@
                     <i class="fas fa-arrow-left"></i> Назад к списку
                 </a>
             </div>
-
+            
             {% if not history %}
-            <div class="empty-state">
-                <i class="fas fa-comment-slash"></i>
-                <h3>История переписки пуста</h3>
-                <p>Для этого пользователя не найдено сообщений</p>
-            </div>
-            {% else %}
-            <div class="chat-container">
-                {% for msg in history %}
-                <div class="message {% if msg.role == 'user' %}user-message{% else %}bot-message{% endif %}"
-                    data-id="{{ loop.index }}">
-                    <div class="message-header">
-                        {% if msg.role == 'user' %}
-                        <i class="fas fa-user"></i> Пользователь
-                        {% else %}
-                        <i class="fas fa-robot"></i> Чат-бот
-                        {% endif %}
-                        <span class="message-time">
-                            {{ msg.timestamp|datetime if msg.timestamp else '' }}
-                        </span>
-                        <div class="message-actions">
-                            <button class="btn-edit" onclick="editMessage(this)">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-delete" onclick="deleteMessage(this)">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="message-content">{{ msg.content }}</div>
+                <div class="empty-state">
+                    <i class="fas fa-comment-slash"></i>
+                    <h3>История переписки пуста</h3>
+                    <p>Для этого пользователя не найдено сообщений</p>
                 </div>
-                {% endfor %}
-            </div>
+            {% else %}
+                <div class="chat-container">
+                    {% for msg in history %}
+                        <div class="message {% if msg.role == 'user' %}user-message{% else %}bot-message{% endif %}">
+                            <div class="message-header">
+                                {% if msg.role == 'user' %}
+                                    <i class="fas fa-user"></i> Пользователь
+                                {% else %}
+                                    <i class="fas fa-robot"></i> Чат-бот
+                                {% endif %}
+                                <span class="message-time">
+                                    {{ msg.timestamp|datetime if msg.timestamp else '' }}
+                                </span>
+                            </div>
+                            <div class="message-content">
+                                {{ msg.content }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
             {% endif %}
 
             <!-- Форма для отправки сообщений -->
             <div class="message-form">
                 <h3><i class="fas fa-paper-plane"></i> Отправить сообщение</h3>
                 <form action="/send_message" method="POST">
-                    <input type="hidden" name="user_id" value="{{ user_id }}" />
-
+                    <input type="hidden" name="user_id" value="{{ user_id }}">
+                    
                     <div class="form-group">
                         <label for="role">Отправитель:</label>
                         <select name="role" id="role" class="form-control" required>
@@ -74,12 +65,12 @@
                             <option value="bot">Чат-бот</option>
                         </select>
                     </div>
-
+                    
                     <div class="form-group">
                         <label for="content">Сообщение:</label>
                         <textarea name="content" id="content" class="form-control" rows="3" required></textarea>
                     </div>
-
+                    
                     <button type="submit" class="btn-send">
                         <i class="fas fa-paper-plane"></i> Отправить
                     </button>
@@ -88,6 +79,4 @@
         </div>
     </div>
 </body>
-<script src="/static/js/app.js"></script>
-
 </html>

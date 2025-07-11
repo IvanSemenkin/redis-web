@@ -183,50 +183,7 @@ def redis_console():
     return render_template('redis_console.html')
 
 
-@app.route('/update_message', methods=['POST'])
-def update_message():
-    data = request.json
-    user_id = data['user_id']
-    message_id = int(data['message_id']) - 1  # Преобразуем в индекс
-    new_content = data['new_content']
-    
-    r = get_redis_connection()
-    key = f'fsm:{user_id}:{user_id}:data'
-    data = r.get(key)
-    
-    if data:
-        try:
-            parsed = json.loads(data)
-            if 'history' in parsed and message_id < len(parsed['history']):
-                parsed['history'][message_id]['content'] = new_content
-                r.set(key, json.dumps(parsed))
-                return jsonify({'success': True})
-        except json.JSONDecodeError:
-            pass
-    
-    return jsonify({'success': False}), 400
 
-@app.route('/delete_message', methods=['POST'])
-def delete_message():
-    data = request.json
-    user_id = data['user_id']
-    message_id = int(data['message_id']) - 1  # Преобразуем в индекс
-    
-    r = get_redis_connection()
-    key = f'fsm:{user_id}:{user_id}:data'
-    data = r.get(key)
-    
-    if data:
-        try:
-            parsed = json.loads(data)
-            if 'history' in parsed and message_id < len(parsed['history']):
-                del parsed['history'][message_id]
-                r.set(key, json.dumps(parsed))
-                return jsonify({'success': True})
-        except json.JSONDecodeError:
-            pass
-    
-    return jsonify({'success': False}), 400
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
