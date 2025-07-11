@@ -781,3 +781,70 @@ a {
 .hljs-number { color: #986801; }
 .hljs-literal { color: #0184bc; }
 
+
+
+.message-actions {
+  display: none;
+  margin-left: auto;
+}
+
+.message:hover .message-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.btn-edit, .btn-delete {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 5px;
+  font-size: 0.8em;
+}
+
+.btn-edit:hover {
+  color: #4361ee;
+}
+
+.btn-delete:hover {
+  color: #f72585;
+}
+
+.message-editor {
+  display: none;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.message-editor textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.message-editor-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.message {
+  transition: all 0.3s ease;
+}
+
+.message-removed {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.btn-save {
+  background-color: #4caf50;
+  color: white;
+}
+
+.btn-cancel {
+  background-color: #f44336;
+  color: white;
+}
