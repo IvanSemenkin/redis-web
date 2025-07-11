@@ -780,3 +780,138 @@ a {
 .hljs-string { color: #50a14f; }
 .hljs-number { color: #986801; }
 .hljs-literal { color: #0184bc; }
+
+/* Мобильные стили (max-width: 768px) */
+@media (max-width: 768px) {
+  .redis-container {
+    grid-template-columns: 1fr;
+    height: auto;
+    gap: 0;
+  }
+
+  .key-list {
+    max-height: 200px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .redis-toolbar {
+    flex-direction: column;
+    padding: 0.75rem;
+  }
+
+  .redis-toolbar input {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .json-editor,
+  .raw-json-editor,
+  .redis-value-editor {
+    height: 300px !important;
+    font-size: 14px;
+  }
+
+  .key-actions {
+    flex-wrap: wrap;
+  }
+
+  .key-actions button {
+    flex: 1 1 45%;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .hash-field {
+    grid-template-columns: 1fr;
+  }
+
+  /* Адаптивные модальные окна */
+  .modal-content {
+    width: 95%;
+    margin: 5% auto;
+  }
+
+  /* Улучшенное отображение JSON */
+  .jsoneditor {
+    font-size: 12px;
+  }
+
+  .jsoneditor-menu {
+    padding: 5px;
+  }
+
+  .jsoneditor-tree {
+    padding-left: 10px;
+  }
+
+  /* Кнопки действий */
+  .btn {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  /* Заголовки */
+  .key-header h3 {
+    font-size: 1rem;
+  }
+
+  /* Иконки */
+  .fa {
+    font-size: 0.9rem;
+  }
+}
+
+/* Дополнительные мобильные стили (max-width: 480px) */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 10px;
+  }
+
+  .header .container {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .btn-redis-console {
+    margin: 10px 0 0 0;
+  }
+
+  .key-item {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .json-editor,
+  .raw-json-editor {
+    height: 250px !important;
+  }
+
+  .key-actions button {
+    flex: 1 1 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Улучшение отступов */
+  .key-content,
+  .message-form {
+    padding: 1rem;
+  }
+
+  /* Уменьшаем шрифты */
+  body {
+    font-size: 14px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  h3 {
+    font-size: 1rem;
+  }
+}
