@@ -3,6 +3,18 @@ import redis
 import json
 import time
 from datetime import datetime
+from auth import app, login_manager, users, User
+from flask import render_template, request, redirect, url_for, flash
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    login_user,
+    logout_user,
+    login_required,
+    current_user
+)
+from werkzeug.security import generate_password_hash, check_password_hash
+
 
 
 app = Flask(__name__, static_folder='static')
@@ -70,8 +82,34 @@ def get_user_history(user_id):
         return parsed.get('history', [])
     except json.JSONDecodeError:
         return []
+    
+    
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        user = next((u for u in users.values() if u.username == username), None)
+        
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            return redirect(url_for('index'))
+        
+        flash('Неверное имя пользователя или пароль')
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+
 
 @app.route('/')
+@login_required
 def index():
     users = get_available_users()
     return render_template('index.html', users=users)
@@ -82,6 +120,7 @@ def api_history(user_id):
     return jsonify(history)
 
 @app.route('/history')
+@login_required
 def show_history():
     user_id = request.args.get('user_id')
     history = get_user_history(user_id)
@@ -179,8 +218,10 @@ def redis_delete(key):
     return jsonify({'success': True, 'deleted': deleted})
 
 @app.route('/redis-console')
+@login_required
 def redis_console():
     return render_template('redis_console.html')
+
 
 
 
