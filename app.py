@@ -176,5 +176,22 @@ def redis_console():
     return render_template('redis_console.html')
 
 
+@app.route('/redis/set', methods=['POST'])
+def redis_set():
+    data = request.json
+    r = get_redis_connection()
+    
+    try:
+        # Проверяем валидность JSON
+        if data['type'] == 'string':
+            json.loads(data['value'])  # Проверка на валидный JSON
+            r.set(data['key'], data['value'])
+            return jsonify({'success': True})
+        elif data['type'] == 'hash':
+            r.hset(data['key'], mapping=data['value'])
+            return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

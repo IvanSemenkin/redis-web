@@ -6,6 +6,53 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
 <script>hljs.highlightAll();</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Добавьте в head -->
+<link href="https://cdn.jsdelivr.net/npm/jsoneditor@9.10.2/dist/jsoneditor.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jsoneditor@9.10.2/dist/jsoneditor.min.js"></script>
+
+<style>
+    /* Стили для JSON-редактора */
+    .json-editor {
+        height: 500px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+    
+    .raw-json-editor {
+        width: 100%;
+        height: 500px;
+        font-family: monospace;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+    
+    .jsoneditor-menu {
+        background-color: #4361ee;
+        border-bottom: 1px solid #4361ee;
+    }
+    
+    /* Уведомления */
+    .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        background: #4caf50;
+        color: white;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .toast.error {
+        background: #f44336;
+    }
+</style>
     <title>Redis Console | Админ-панель</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -113,35 +160,60 @@
         // Отображение строкового ключа
         function renderStringKey(key, value) {
     try {
-        // Пытаемся красиво отформатировать JSON
         const parsedValue = JSON.parse(value);
-        const formattedValue = JSON.stringify(parsedValue, null, 2);
         
         keyContent.innerHTML = `
             <div class="key-header">
                 <h3>${key} <span class="key-type">(JSON)</span></h3>
             </div>
-            <pre class="json-viewer">${hljs.highlight('json', formattedValue).value}</pre>
+            <div id="json-editor" class="json-editor"></div>
             <div class="key-actions">
-                <button id="save-key" class="btn-primary"><i class="fas fa-save"></i> Сохранить</button>
-                <button id="delete-key" class="btn-danger"><i class="fas fa-trash"></i> Удалить</button>
+                <button id="save-json" class="btn-primary">
+                    <i class="fas fa-save"></i> Сохранить
+                </button>
+                <button id="delete-key" class="btn-danger">
+                    <i class="fas fa-trash"></i> Удалить
+                </button>
+                <button id="toggle-raw" class="btn-secondary">
+                    <i class="fas fa-code"></i> RAW-режим
+                </button>
             </div>
+            <textarea id="raw-json-editor" class="raw-json-editor" style="display:none">
+                ${JSON.stringify(parsedValue, null, 2)}
+            </textarea>
         `;
+        
+        // Инициализация JSON-редактора
+        const editor = document.getElementById('json-editor');
+        const options = {
+            mode: 'tree',
+            modes: ['tree', 'code', 'form', 'text'],
+            search: true,
+            onChange: function() {
+                document.getElementById('raw-json-editor').value = JSON.stringify(editor.jsoneditor.get(), null, 2);
+            }
+        };
+        editor.jsoneditor = new JSONEditor(editor, options, parsedValue);
+        
+        setupJsonHandlers(key);
     } catch (e) {
-        // Если не JSON, показываем как обычный текст
+        // Обработка не-JSON данных
         keyContent.innerHTML = `
             <div class="key-header">
                 <h3>${key} <span class="key-type">(string)</span></h3>
             </div>
             <textarea class="redis-value-editor">${value}</textarea>
             <div class="key-actions">
-                <button id="save-key" class="btn-primary"><i class="fas fa-save"></i> Сохранить</button>
-                <button id="delete-key" class="btn-danger"><i class="fas fa-trash"></i> Удалить</button>
+                <button id="save-key" class="btn-primary">
+                    <i class="fas fa-save"></i> Сохранить
+                </button>
+                <button id="delete-key" class="btn-danger">
+                    <i class="fas fa-trash"></i> Удалить
+                </button>
             </div>
         `;
+        setupKeyHandlers(key, 'string');
     }
-    
-    setupKeyHandlers(key, 'string');
 }
 
         // Отображение хэш-ключа
@@ -172,7 +244,90 @@
             
             setupKeyHandlers(key, 'hash');
         }
+        
+        function setupJsonHandlers(key) {
 
+        // Показ уведомлений
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.style.opacity = '1', 10);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Состояние пустого ключа
+function showEmptyKeyState() {
+    keyContent.innerHTML = `
+        <div class="empty-state">
+            <i class="fas fa-key"></i>
+            <h3>Выберите ключ</h3>
+            <p>Выберите ключ из списка для просмотра и редактирования</p>
+        </div>
+    `;
+}
+    // Сохранение JSON
+    document.getElementById('save-json').addEventListener('click', async () => {
+        const editor = document.getElementById('json-editor').jsoneditor;
+        const value = JSON.stringify(editor.get());
+        
+        const response = await fetch('/redis/set', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                key: key,
+                type: 'string',
+                value: value
+            })
+        });
+        
+        if (response.ok) {
+            showToast('JSON успешно сохранен!', 'success');
+        }
+    });
+    
+    // Переключение между редакторами
+    document.getElementById('toggle-raw').addEventListener('click', function() {
+        const jsonEditor = document.getElementById('json-editor');
+        const rawEditor = document.getElementById('raw-json-editor');
+        
+        if (jsonEditor.style.display === 'none') {
+            // Переход из RAW в визуальный редактор
+            try {
+                const parsed = JSON.parse(rawEditor.value);
+                jsonEditor.jsoneditor.set(parsed);
+                jsonEditor.style.display = 'block';
+                rawEditor.style.display = 'none';
+                this.innerHTML = '<i class="fas fa-code"></i> RAW-режим';
+            } catch (e) {
+                showToast('Ошибка в JSON: ' + e.message, 'error');
+            }
+        } else {
+            // Переход в RAW-режим
+            rawEditor.value = JSON.stringify(jsonEditor.jsoneditor.get(), null, 2);
+            jsonEditor.style.display = 'none';
+            rawEditor.style.display = 'block';
+            this.innerHTML = '<i class="fas fa-tree"></i> Визуальный режим';
+        }
+    });
+    
+    // Обработчик удаления
+    document.getElementById('delete-key').addEventListener('click', () => {
+        if (confirm(`Удалить ключ ${key}?`)) {
+            fetch(`/redis/delete/${encodeURIComponent(key)}`, {
+                method: 'DELETE'
+            }).then(() => {
+                loadKeys();
+                showEmptyKeyState();
+            });
+        }
+    });
+}
         // Настройка обработчиков для ключа
         function setupKeyHandlers(key, type) {
             document.getElementById('save-key').addEventListener('click', async () => {
