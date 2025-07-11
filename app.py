@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Flask, render_template, request, url_for, redirect, jsonify
 import redis
 import json
 import time
@@ -8,8 +8,8 @@ from datetime import datetime
 app = Flask(__name__, static_folder='static')
 
 # Конфигурация Redis
-REDIS_HOST = 'localhost'
-REDIS_PORT = 6380
+REDIS_HOST = "localhost"
+REDIS_PORT = 6379
 REDIS_DB = 0
 
 def add_message_to_history(user_id, role, content):
@@ -75,6 +75,11 @@ def get_user_history(user_id):
 def index():
     users = get_available_users()
     return render_template('index.html', users=users)
+
+@app.route('/api/history/<user_id>')
+def api_history(user_id):
+    history = get_user_history(user_id)
+    return jsonify(history)
 
 @app.route('/history')
 def show_history():
