@@ -19,10 +19,36 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__, static_folder='static')
 
+login_manager = LoginManager()
+login_manager.init_app(app)  # Связываем с приложением
+login_manager.login_view = 'login'
+
 # Конфигурация Redis
 REDIS_HOST = "localhost"
 REDIS_PORT = 6379
 REDIS_DB = 0
+
+users = {
+    1: {
+        'id': 1,
+        'username': 'admin',
+        'password': generate_password_hash('admin123')
+    }
+}
+
+class User(UserMixin):
+    def __init__(self, user_data):
+        self.id = user_data['id']
+        self.username = user_data['username']
+        self.password_hash = user_data['password']
+
+# Загрузчик пользователя (обязательная функция)
+@login_manager.user_loader
+def load_user(user_id):
+    user_data = users.get(int(user_id))
+    if user_data:
+        return User(user_data)
+    return None
 
 def add_message_to_history(user_id, role, content):
     r = get_redis_connection()
