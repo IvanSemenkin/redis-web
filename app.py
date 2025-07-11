@@ -159,27 +159,6 @@ def redis_hgetall(key):
 def redis_set():
     data = request.json
     r = get_redis_connection()
-    if data['type'] == 'string':
-        r.set(data['key'], data['value'])
-    elif data['type'] == 'hash':
-        r.hset(data['key'], mapping=data['value'])
-    return jsonify({'success': True})
-
-@app.route('/redis/delete/<key>', methods=['DELETE'])
-def redis_delete(key):
-    r = get_redis_connection()
-    deleted = r.delete(key)
-    return jsonify({'success': True, 'deleted': deleted})
-
-@app.route('/redis-console')
-def redis_console():
-    return render_template('redis_console.html')
-
-
-@app.route('/redis/set', methods=['POST'])
-def redis_set():
-    data = request.json
-    r = get_redis_connection()
     
     try:
         # Проверяем валидность JSON
@@ -192,6 +171,19 @@ def redis_set():
             return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/redis/delete/<key>', methods=['DELETE'])
+def redis_delete(key):
+    r = get_redis_connection()
+    deleted = r.delete(key)
+    return jsonify({'success': True, 'deleted': deleted})
+
+@app.route('/redis-console')
+def redis_console():
+    return render_template('redis_console.html')
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
