@@ -1,86 +1,226 @@
-/* Redis Console Styles */
-.redis-toolbar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redis Console | Админ-панель</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .redis-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            height: calc(100vh - 200px);
+        }
+        .key-list {
+            overflow-y: auto;
+            border-right: 1px solid #eee;
+        }
+        .key-content {
+            overflow-y: auto;
+        }
+        .redis-value-editor {
+            font-family: monospace;
+            min-height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1><i class="fas fa-database"></i> Redis Console</h1>
+        </div>
+    </div>
 
-.redis-toolbar input {
-    flex-grow: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
+    <div class="container">
+        <div class="redis-toolbar">
+            <input type="text" id="key-pattern" placeholder="Шаблон ключей (например: fsm:*)" value="fsm:*">
+            <button id="refresh-keys"><i class="fas fa-sync-alt"></i> Обновить</button>
+        </div>
 
-.key-item {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-    word-break: break-all;
-}
+        <div class="redis-container">
+            <div class="key-list" id="key-list">
+                <!-- Список ключей будет здесь -->
+            </div>
 
-.key-item:hover {
-    background-color: #f5f5f5;
-}
+            <div class="key-content" id="key-content">
+                <div class="empty-state">
+                    <i class="fas fa-key"></i>
+                    <h3>Выберите ключ</h3>
+                    <p>Выберите ключ из списка для просмотра и редактирования</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-.key-header {
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
-}
+    <script>
+        // DOM элементы
+        const keyList = document.getElementById('key-list');
+        const keyContent = document.getElementById('key-content');
+        const keyPattern = document.getElementById('key-pattern');
+        const refreshBtn = document.getElementById('refresh-keys');
 
-.key-type {
-    color: #666;
-    font-size: 0.8em;
-}
+        // Загрузка ключей
+        async function loadKeys() {
+            const pattern = keyPattern.value || '*';
+            const response = await fetch(`/redis/keys?pattern=${encodeURIComponent(pattern)}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                renderKeyList(data.keys);
+            }
+        }
 
-.redis-value-editor {
-    width: 100%;
-    min-height: 300px;
-    padding: 10px;
-    font-family: monospace;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
+        // Отображение списка ключей
+        function renderKeyList(keys) {
+            keyList.innerHTML = '';
+            keys.forEach(key => {
+                const keyElement = document.createElement('div');
+                keyElement.className = 'key-item';
+                keyElement.textContent = key;
+                keyElement.addEventListener('click', () => loadKeyContent(key));
+                keyList.appendChild(keyElement);
+            });
+        }
 
-.key-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
+        // Загрузка содержимого ключа
+        async function loadKeyContent(key) {
+            let response, data;
+            
+            // Сначала пробуем как строку
+            response = await fetch(`/redis/get/${encodeURIComponent(key)}`);
+            data = await response.json();
+            
+            if (data.type === 'string') {
+                renderStringKey(key, data.value);
+            } else {
+                // Если не строка, пробуем как хэш
+                response = await fetch(`/redis/hgetall/${encodeURIComponent(key)}`);
+                data = await response.json();
+                
+                if (data.type === 'hash') {
+                    renderHashKey(key, data.value);
+                } else {
+                    renderUnknownKey(key);
+                }
+            }
+        }
 
-.key-actions button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
+        // Отображение строкового ключа
+        function renderStringKey(key, value) {
+            keyContent.innerHTML = `
+                <div class="key-header">
+                    <h3>${key} <span class="key-type">(string)</span></h3>
+                </div>
+                <textarea class="redis-value-editor" id="key-value">${value}</textarea>
+                <div class="key-actions">
+                    <button id="save-key"><i class="fas fa-save"></i> Сохранить</button>
+                    <button id="delete-key" class="danger"><i class="fas fa-trash"></i> Удалить</button>
+                </div>
+            `;
+            
+            setupKeyHandlers(key, 'string');
+        }
 
-.key-actions button.danger {
-    background-color: #ff6b6b;
-    color: white;
-}
+        // Отображение хэш-ключа
+        function renderHashKey(key, value) {
+            let fieldsHtml = '';
+            for (const [field, val] of Object.entries(value)) {
+                fieldsHtml += `
+                    <div class="hash-field">
+                        <input type="text" value="${field}" class="hash-field-name">
+                        <textarea class="hash-field-value">${val}</textarea>
+                    </div>
+                `;
+            }
+            
+            keyContent.innerHTML = `
+                <div class="key-header">
+                    <h3>${key} <span class="key-type">(hash)</span></h3>
+                </div>
+                <div class="hash-fields" id="hash-fields">
+                    ${fieldsHtml}
+                </div>
+                <div class="key-actions">
+                    <button id="add-field"><i class="fas fa-plus"></i> Добавить поле</button>
+                    <button id="save-key"><i class="fas fa-save"></i> Сохранить</button>
+                    <button id="delete-key" class="danger"><i class="fas fa-trash"></i> Удалить</button>
+                </div>
+            `;
+            
+            setupKeyHandlers(key, 'hash');
+        }
 
-.hash-field {
-    margin-bottom: 15px;
-}
+        // Настройка обработчиков для ключа
+        function setupKeyHandlers(key, type) {
+            document.getElementById('save-key').addEventListener('click', async () => {
+                let value;
+                
+                if (type === 'string') {
+                    value = document.getElementById('key-value').value;
+                } else {
+                    value = {};
+                    document.querySelectorAll('.hash-field').forEach(field => {
+                        const name = field.querySelector('.hash-field-name').value;
+                        const val = field.querySelector('.hash-field-value').value;
+                        if (name) value[name] = val;
+                    });
+                }
+                
+                const response = await fetch('/redis/set', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        key: key,
+                        type: type,
+                        value: value
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Ключ сохранен!');
+                }
+            });
+            
+            document.getElementById('delete-key').addEventListener('click', async () => {
+                if (confirm(`Вы уверены, что хотите удалить ключ ${key}?`)) {
+                    const response = await fetch(`/redis/delete/${encodeURIComponent(key)}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        alert('Ключ удален!');
+                        loadKeys();
+                        keyContent.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-key"></i>
+                                <h3>Выберите ключ</h3>
+                                <p>Выберите ключ из списка для просмотра и редактирования</p>
+                            </div>
+                        `;
+                    }
+                }
+            });
+            
+            if (type === 'hash') {
+                document.getElementById('add-field').addEventListener('click', () => {
+                    const fieldsContainer = document.getElementById('hash-fields');
+                    const newField = document.createElement('div');
+                    newField.className = 'hash-field';
+                    newField.innerHTML = `
+                        <input type="text" value="" class="hash-field-name" placeholder="Имя поля">
+                        <textarea class="hash-field-value" placeholder="Значение"></textarea>
+                    `;
+                    fieldsContainer.appendChild(newField);
+                });
+            }
+        }
 
-.hash-field-name {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.hash-field-value {
-    width: 100%;
-    min-height: 80px;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-family: monospace;
-}
+        // Инициализация
+        refreshBtn.addEventListener('click', loadKeys);
+        loadKeys();
+    </script>
+</body>
+</html>
